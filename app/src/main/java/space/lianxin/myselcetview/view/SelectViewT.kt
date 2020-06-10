@@ -7,19 +7,28 @@ import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.Rect
 import android.util.AttributeSet
-import android.util.Log
 import android.view.View
 import android.view.MotionEvent
-import space.lianxin.myselcetview.R
-
 
 /**
- * description:右侧快速索引(PopWindow实现)
+ * description:右侧快速索引（onDraw实现）
+ * 弹窗和文字占比2:1
  * @date: 2020/6/9 22:13
  * @author: lianxin
  */
-class SelectView @JvmOverloads constructor(context: Context?, attrs: AttributeSet? = null, defStyle: Int = 0) :
+class SelectViewT constructor(context: Context?, attrs: AttributeSet?, defStyle: Int) :
   View(context, attrs, defStyle) {
+
+  constructor(context: Context?, attrs: AttributeSet?) : this(context, attrs, 0) {
+    // 初始化画笔
+    paint = Paint()
+    // 设置画笔颜色
+    paint.color = defaultColor
+    // 抗锯齿
+    paint.isAntiAlias = true
+  }
+
+  constructor(context: Context?) : this(context, null)
 
   // 绘制View画笔
   private var paint: Paint = Paint()
@@ -27,9 +36,10 @@ class SelectView @JvmOverloads constructor(context: Context?, attrs: AttributeSe
   private val defaultColor = Color.BLUE
   // 选中条目颜色
   private val selectColor = Color.RED
-
-  // popwindow
-  private var pop: PopWord = PopWord(context, null)
+  // 圆背景色
+  private val circleColor = Color.RED
+  // 圆上字的颜色
+  private val circlrTextColor = Color.WHITE
 
   // 条目宽度
   private var itemWidth: Int = 0
@@ -45,24 +55,6 @@ class SelectView @JvmOverloads constructor(context: Context?, attrs: AttributeSe
   )
   // 当前选中索引下标，默认未选中任何索引
   private var selectIndex: Int = -1
-
-  init {
-
-    // 属性值
-    val arr = context?.obtainStyledAttributes(attrs, R.styleable.SelectView)
-    arr?.recycle()
-
-
-    // 初始化画笔
-    this.paint = Paint()
-    // 设置画笔颜色
-    paint.color = defaultColor
-    // 抗锯齿
-    paint.isAntiAlias = true
-    // 初始化popWindow
-    pop = PopWord(context, null)
-  }
-
 
   // 设置索引改变监听
   private var onSelectIndexChangeListener: OnSelectIndexChangeListener? = null
@@ -95,10 +87,16 @@ class SelectView @JvmOverloads constructor(context: Context?, attrs: AttributeSe
     for (i in 0 until items.size) {
 
       // 判断下标命中,选择画笔颜色
-      if (selectIndex == i)
+      if (selectIndex == i) {
         paint.color = selectColor
-      else
+        // 计算圆心位置,半径
+        val cx = itemWidth / 3f
+        val cy = (itemHeight * selectIndex + (itemHeight / 2)).toFloat()
+        val r = itemWidth * 0.3f
+        drawCircle(canvas, cx, cy, r)
+      } else {
         paint.color = defaultColor
+      }
 
       // 读取条目文字，开始绘制
       val word = items[i]
@@ -108,7 +106,7 @@ class SelectView @JvmOverloads constructor(context: Context?, attrs: AttributeSe
       val wordWidth = rect.width()
       val wordHeight = rect.height()
       // 计算文字出现位置并绘制
-      val wordX = (itemWidth / 2 - wordWidth / 2).toFloat()
+      val wordX = itemWidth * 0.835f - (wordWidth / 2)
       val wordY = (itemHeight / 2 + wordHeight / 2 + i * itemHeight).toFloat()
       canvas?.drawText(word, wordX, wordY, paint)
     }
@@ -124,7 +122,6 @@ class SelectView @JvmOverloads constructor(context: Context?, attrs: AttributeSe
       MotionEvent.ACTION_DOWN, MotionEvent.ACTION_MOVE -> {
         // 根据Y轴坐标计算选中的索引值
         val index = (event.y / itemHeight).toInt()
-        Log.d("lianxin", "$index")
         // 判断索引更改
         if (index != selectIndex) {
           // 更改索引下标，并重绘
@@ -132,21 +129,6 @@ class SelectView @JvmOverloads constructor(context: Context?, attrs: AttributeSe
           invalidate()
           // 判断事件是否还在控件内部。
           if (selectIndex in 0 until items.size) {
-            // 显示弹窗
-            // 计算偏移值
-            val xoff = -pop.contentView.measuredWidth
-            var yoff = itemHeight * selectIndex + (itemHeight / 2) - (pop.contentView.measuredHeight / 2)
-//            var yoff = itemHeight * selectIndex
-            // 判断偏移值是否正确
-            yoff = if (yoff < 100) 100 else yoff
-
-            Log.d("lianxin", "xoff=$xoff,yoff=${yoff},event.y=${event.y}")
-            if (event.action == MotionEvent.ACTION_DOWN) {
-              setPopWordShowAs(items[selectIndex], xoff, yoff)
-            } else {
-              pop.setWord(items[selectIndex])
-              pop.update(this, xoff, yoff, -1, -1)
-            }
             // 接口回调
             if (onSelectIndexChangeListener != null) {
               onSelectIndexChangeListener?.onSelectIndexChange(items[selectIndex])
@@ -158,29 +140,41 @@ class SelectView @JvmOverloads constructor(context: Context?, attrs: AttributeSe
         // 取消选中的下标。
         selectIndex = -1
         invalidate()
-        // 取消pop显示
-        if (pop.isShowing)
-          pop.dismiss()
       }
     }
     return true
   }
 
-  /**
-   * @param word 需要显示的文字
-   * @param xoff X轴偏移
-   * @param yoff Y轴偏移
-   */
-  private fun setPopWordShowAs(word: String, xoff: Int, yoff: Int) {
-    pop.setWord(word)
-    pop.showAsDropDown(this, xoff, yoff)
 
+  private fun drawCircle(canvas: Canvas?, cx: Float, cy: Float, r: Float) {
+    // 保存画笔颜色
+    val saveColor = paint.color
+    paint.color = circleColor
+
+    // 画实心圆
+    paint.style = Paint.Style.FILL
+    canvas?.drawCircle(cx, cy, r, paint)
+
+    // 画实心圆上的文字
+    paint.color = circlrTextColor
+    paint.textSize = 60f
+    paint.getTextBounds(items[selectIndex], 0, 1, rect)
+    // 计算文字位置
+    val wordX = cx - (rect.width() / 2)
+    val wordY = cy + (rect.height() / 2)
+    canvas?.drawText(items[selectIndex], wordX, wordY, paint)
+    // 还原画笔颜色
+    paint.color = saveColor
   }
 
-//  // 设置监听
-//  fun setOnSelectIndexChangeListener(l: OnSelectIndexChangeListener) {
-//    onSelectIndexChangeListener = l
-//  }
+  /**
+   * 设置下标改变监听
+   */
+  fun setOnSelectIndexChangeListener(l: OnSelectIndexChangeListener) {
+    onSelectIndexChangeListener = l
+  }
 
 
 }
+
+

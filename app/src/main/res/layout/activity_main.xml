@@ -7,10 +7,10 @@
     tools:context=".MainActivity"
     >
 
-  <space.lianxin.myselcetview.view.SelectView
+  <space.lianxin.myselcetview.view.SelectViewT
       android:id="@+id/sv_main_select"
       android:layout_width="30dp"
-      android:layout_height="600dp"
+      android:layout_height="0dp"
       app:layout_constraintBottom_toBottomOf="parent"
       app:layout_constraintEnd_toEndOf="parent"
       app:layout_constraintTop_toTopOf="parent"

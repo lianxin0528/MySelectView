@@ -14,7 +14,8 @@ import space.lianxin.myselcetview.R
  * @date: 2020/6/10 08:55
  * @author: lianxin
  */
-class PopWord : PopupWindow {
+@Suppress("DEPRECATION")
+class PopWord constructor(context: Context?, word: String?) : PopupWindow(context) {
 
   // 整体视图
   private var mView: View? = null
@@ -28,7 +29,7 @@ class PopWord : PopupWindow {
     mTextView?.text = word
   }
 
-  constructor(context: Context?, word: String?) : super(context) {
+  init {
 
     // 加载视图
     val inflate: LayoutInflater =
