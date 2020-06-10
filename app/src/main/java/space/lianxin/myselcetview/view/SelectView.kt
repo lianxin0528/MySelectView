@@ -122,8 +122,6 @@ class SelectView constructor(context: Context?, attrs: AttributeSet?, defStyle: 
   override fun onTouchEvent(event: MotionEvent?): Boolean {
     super.onTouchEvent(event)
 
-    Log.d(TAG, "event.y=${event?.y}")
-
     // 判断事件
     when (event?.action) {
       MotionEvent.ACTION_DOWN, MotionEvent.ACTION_MOVE -> {
