@@ -2,6 +2,7 @@ package space.lianxin.myselcetview
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.view.Window
 import android.widget.TextView
 import space.lianxin.myselcetview.view.OnSelectIndexChangeListener
 import space.lianxin.myselcetview.view.SelectView

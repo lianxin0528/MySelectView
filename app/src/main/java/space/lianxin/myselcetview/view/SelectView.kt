@@ -1,14 +1,18 @@
 package space.lianxin.myselcetview.view
 
 import android.content.Context
+import android.content.res.TypedArray
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.Rect
 import android.util.AttributeSet
 import android.util.Log
+import android.view.Gravity
 import android.view.View
 import android.view.MotionEvent
+import space.lianxin.myselcetview.R
+import kotlin.math.abs
 
 
 /**
@@ -22,12 +26,20 @@ class SelectView constructor(context: Context?, attrs: AttributeSet?, defStyle: 
   private val TAG: String? = SelectView::class.simpleName
 
   constructor(context: Context?, attrs: AttributeSet?) : this(context, attrs, 0) {
+
+    // 属性值
+    var arr = context?.obtainStyledAttributes(attrs, R.styleable.SelectView)
+    arr?.recycle()
+
+
     // 初始化画笔
     paint = Paint()
     // 设置画笔颜色
     paint.color = defaultColor
     // 抗锯齿
     paint.isAntiAlias = true
+    // 初始化popWindow
+    pop = PopWord(context, null)
   }
 
   constructor(context: Context?) : this(context, null)
@@ -39,8 +51,8 @@ class SelectView constructor(context: Context?, attrs: AttributeSet?, defStyle: 
   // 选中条目颜色
   private val selectColor = Color.RED
 
-  //popwindow
-  private var pop: PopWord? = null
+  // popwindow
+  private var pop: PopWord = PopWord(context, null)
 
   // 条目宽度
   private var itemWidth: Int = 0
@@ -67,9 +79,11 @@ class SelectView constructor(context: Context?, attrs: AttributeSet?, defStyle: 
     super.onMeasure(widthMeasureSpec, heightMeasureSpec)
 
     // 计算条目所需要的宽度
+//    itemWidth = MeasureSpec.getSize(widthMeasureSpec)
     itemWidth = measuredWidth
 
     // 计算条目所需要的高度
+//    itemHeight = MeasureSpec.getSize(heightMeasureSpec) / items.size
     itemHeight = measuredHeight / items.size
 
   }
@@ -81,16 +95,16 @@ class SelectView constructor(context: Context?, attrs: AttributeSet?, defStyle: 
     super.onDraw(canvas)
 
     // 绘制每个条目
-    for (i in 1..items.size) {
+    for (i in 0 until items.size) {
 
-      // 判断下标命中
-      if (selectIndex == i - 1)
+      // 判断下标命中,选择画笔颜色
+      if (selectIndex == i)
         paint.color = selectColor
       else
         paint.color = defaultColor
 
       // 读取条目文字，开始绘制
-      var word = items[i - 1]
+      var word = items[i]
       var rect = Rect()
       paint.textSize = 40f
       paint.getTextBounds(word, 0, 1, rect)
@@ -107,6 +121,9 @@ class SelectView constructor(context: Context?, attrs: AttributeSet?, defStyle: 
 
   override fun onTouchEvent(event: MotionEvent?): Boolean {
     super.onTouchEvent(event)
+
+    Log.d(TAG, "event.y=${event?.y}")
+
     // 判断事件
     when (event?.action) {
       MotionEvent.ACTION_DOWN, MotionEvent.ACTION_MOVE -> {
@@ -117,9 +134,27 @@ class SelectView constructor(context: Context?, attrs: AttributeSet?, defStyle: 
           // 更改索引下标，并重绘
           selectIndex = index
           invalidate()
-          // 接口回调
-          if (onSelectIndexChangeListener != null) {
-            onSelectIndexChangeListener?.onSelectIndexChange(items[selectIndex])
+          // 判断事件是否还在控件内部。
+          if (selectIndex in 0 until items.size) {
+            // 显示弹窗
+            // 计算偏移值
+            var xoff = -pop!!.contentView.measuredWidth
+            var yoff = itemHeight * selectIndex + (itemHeight / 2) - (pop.contentView.measuredHeight / 2)
+//            var yoff = itemHeight * selectIndex
+            // 判断偏移值是否正确
+            yoff = abs(yoff)
+
+            Log.d(TAG, "xoff=$xoff,yoff=${yoff},event.y=${event.y}")
+            if (event.action == MotionEvent.ACTION_DOWN)
+              setPopWordShowAs(items[selectIndex], xoff, yoff)
+            else {
+              pop.setWord(items[selectIndex])
+              pop.update(this, xoff, yoff, -1, -1)
+            }
+            // 接口回调
+            if (onSelectIndexChangeListener != null) {
+              onSelectIndexChangeListener?.onSelectIndexChange(items[selectIndex])
+            }
           }
         }
       }
@@ -127,10 +162,22 @@ class SelectView constructor(context: Context?, attrs: AttributeSet?, defStyle: 
         // 取消选中的下标。
         selectIndex = -1
         invalidate()
-        Log.w(TAG, "MotionEvent.ACTION_UP")
+        // 取消pop显示
+        if (pop!!.isShowing)
+          pop!!.dismiss()
       }
     }
     return true
+  }
+
+  /**
+   * @param word 需要显示的文字
+   * @param xoff X轴偏移
+   * @param yoff Y轴偏移
+   */
+  private fun setPopWordShowAs(word: String, xoff: Int, yoff: Int) {
+    pop!!.setWord(word)
+    pop!!.showAsDropDown(this, xoff, yoff)
   }
 
   // 设置监听
