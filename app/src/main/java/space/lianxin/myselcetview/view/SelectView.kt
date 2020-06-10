@@ -88,6 +88,8 @@ class SelectView constructor(context: Context?, attrs: AttributeSet?, defStyle: 
 
   }
 
+  private var rect: Rect = Rect()
+
   /**
    * 绘制view
    */
@@ -105,7 +107,6 @@ class SelectView constructor(context: Context?, attrs: AttributeSet?, defStyle: 
 
       // 读取条目文字，开始绘制
       var word = items[i]
-      var rect = Rect()
       paint.textSize = 40f
       paint.getTextBounds(word, 0, 1, rect)
       // 文字宽高
@@ -127,6 +128,7 @@ class SelectView constructor(context: Context?, attrs: AttributeSet?, defStyle: 
       MotionEvent.ACTION_DOWN, MotionEvent.ACTION_MOVE -> {
         // 根据Y轴坐标计算选中的索引值
         val index = (event.y / itemHeight).toInt()
+        Log.d(TAG, "$index")
         // 判断索引更改
         if (index != selectIndex) {
           // 更改索引下标，并重绘
@@ -140,7 +142,7 @@ class SelectView constructor(context: Context?, attrs: AttributeSet?, defStyle: 
             var yoff = itemHeight * selectIndex + (itemHeight / 2) - (pop.contentView.measuredHeight / 2)
 //            var yoff = itemHeight * selectIndex
             // 判断偏移值是否正确
-            yoff = abs(yoff)
+            yoff = if (yoff < 100) 100 else yoff
 
             Log.d(TAG, "xoff=$xoff,yoff=${yoff},event.y=${event.y}")
             if (event.action == MotionEvent.ACTION_DOWN)
