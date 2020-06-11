@@ -7,13 +7,20 @@
     tools:context=".MainActivity"
     >
 
-  <space.lianxin.myselcetview.view.SelectViewT
-      android:id="@+id/sv_main_select"
-      android:layout_width="30dp"
-      android:layout_height="0dp"
-      app:layout_constraintBottom_toBottomOf="parent"
-      app:layout_constraintEnd_toEndOf="parent"
+  <include
+      android:id="@+id/inMainTitle"
+      layout="@layout/layout_title"
+      app:layout_constraintStart_toStartOf="parent"
       app:layout_constraintTop_toTopOf="parent"
+      />
+
+  <View
+      android:id="@+id/vLine"
+      android:layout_width="match_parent"
+      android:layout_height="28dp"
+      android:background="#1100ff00"
+      app:layout_constraintStart_toStartOf="@id/inMainTitle"
+      app:layout_constraintTop_toBottomOf="@id/inMainTitle"
       />
 
   <TextView
@@ -21,10 +28,21 @@
       android:layout_width="wrap_content"
       android:layout_height="wrap_content"
       android:text="Hello World!"
+      android:textSize="30sp"
       app:layout_constraintBottom_toBottomOf="parent"
-      app:layout_constraintLeft_toLeftOf="parent"
-      app:layout_constraintRight_toRightOf="parent"
+      app:layout_constraintEnd_toEndOf="parent"
+      app:layout_constraintStart_toStartOf="parent"
       app:layout_constraintTop_toTopOf="parent"
+      />
+
+  <space.lianxin.myselcetview.view.SelectViewT
+      android:id="@+id/sv_main_select"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:layout_marginEnd="8dp"
+      app:layout_constraintBottom_toBottomOf="parent"
+      app:layout_constraintEnd_toEndOf="@id/inMainTitle"
+      app:layout_constraintTop_toBottomOf="@id/vLine"
       />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
