@@ -9,7 +9,8 @@ interface OnSelectIndexChangeListener {
 
   /**
    * @param word 当前选中的索引值
+   * @param index 快速索引的下标，包含lately(最近联系)和friend(好友)。
    */
-  fun onSelectIndexChange(word: String)
+  fun onSelectIndexChange(word: String, index: Int)
 
 }

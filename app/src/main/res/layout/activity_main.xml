@@ -10,6 +10,9 @@
   <include
       android:id="@+id/inMainTitle"
       layout="@layout/layout_title"
+      android:layout_width="match_parent"
+      android:layout_height="94dp"
+      app:layout_constraintEnd_toEndOf="parent"
       app:layout_constraintStart_toStartOf="parent"
       app:layout_constraintTop_toTopOf="parent"
       />
@@ -27,6 +30,8 @@
       android:id="@+id/tv_main_content"
       android:layout_width="wrap_content"
       android:layout_height="wrap_content"
+      android:ellipsize="end"
+      android:maxLines="1"
       android:text="Hello World!"
       android:textSize="30sp"
       app:layout_constraintBottom_toBottomOf="parent"
